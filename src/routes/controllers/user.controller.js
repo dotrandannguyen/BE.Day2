@@ -7,6 +7,7 @@ const GetAll = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+    ///
 };
 
 // ... (GetById, postUser, putUser, deleteUser tương tự như bạn viết)
