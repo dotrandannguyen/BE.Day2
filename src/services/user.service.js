@@ -1,114 +1,75 @@
-import DbHelper from '../helpers/DbHelper.js'
 
-// Lấy tất cả người dùng
-const GetAll = async() => {
-    const userList = await mongoDB.collection("users").find().toArray();
-    console.log(userList);
-    return userList;
-    
-}
+import User from '../models/user.model.js'
+import { ObjectId } from 'mongodb'
 
-// Lấy người dùng theo ID
-const GetById = async (id) => {
-    const db = await DbHelper.readDb()
-    const index = db.User.findIndex((user) => user.id === id)
-    if (index === -1) {
-        throw new Error("Not Found")
+class UserService {
+  constructor() {
+    this.user = User
+  }
+
+  async GetAll() {
+
+    const users = await this.user.find()
+    if(!users){
+        throw new Error("No users found")
     }
-    return db.User[index]
-}
+    return users
 
-// Tạo người dùng mới
-const CreateUser = async (body) => {
-    const db = await DbHelper.readDb()
-    db.User.push(body)
-    await DbHelper.writeDb(db)
-    return body
-}
+  }
 
-// Cập nhật người dùng theo ID
-const putUser = async (id, body) => {
-    const db = await DbHelper.readDb()
-    const index = db.User.findIndex((user) => user.id === id)
-    if (index === -1) {
-        throw new Error("Not Found")
+  async GetById(id) {
+
+    const users = await this.user.findOne({_id: new ObjectId(id)})
+    if (!users){
+        throw new Error("user not found")            
+
     }
-    db.User[index] = { ...db.User[index], ...body } // cập nhật thông tin mới
-    await DbHelper.writeDb(db)
-    return db.User[index]
-}
+    return users
+  }
 
-// Xóa người dùng theo ID
-const DeleteUser = async (id) => {
-    const db = await DbHelper.readDb()
-    const index = db.User.findIndex((user) => user.id === id)
-    if (index === -1) {
-        throw new Error("Not Found")
+  async Create(user) {
+    const newUser= await this.user.create(user)
+    if(!newUser){
+        throw new Error("failed to creat user")
     }
-    const deletedUser = db.User.splice(index, 1)
-    await DbHelper.writeDb(db)
-    return deletedUser[0]
-}
-
-export default {
-    GetAll,
-    GetById,
-    CreateUser,
-    putUser,
-    DeleteUser
-}
-import db from '../database/mongodb.js'
-
-const mongoDB = await db.getDB();  
-const GetAll = async() => {
-    const userList = await mongoDB.collection("users").find().toArray();
-    return userList;
-}
-
-const GetById = async(id) => {
-
-
-
-    const userList= await mongoDB.collection("users").findOne({id:id});
-    if (!userList) {
-        throw new Error("Not Found")
-    }
-    return userList;
-}
-
-const Insert= async (userData) => {
-
-
-
-    const lastUser= await mongoDB.collection("users").find().sort({id: -1}).limit(1).toArray();
-    const maxID= lastUser.length===1 ? lastUser[0].id+1 : 1;
-    const newUser= {...userData, id: maxID};
-    const updateList= await mongoDB.collection("users").insertOne(newUser);
     return newUser
-}
 
-const Delete= async (id) => {
+  }
 
-    const user= await mongoDB.collection("users").findOne({id: id});
-    if (!user) throw new Error("User not found");
-    const deleteResult = await mongoDB.collection("users").deleteOne({id: id});
-    if (deleteResult.deletedCount ===0){
-        throw new Error("Failed to delete user")
+  async Update(id, user) {
+    const existingUser = await this. user.findOne({_id: new ObjectId(id)})
+    if(!existingUser){
+        throw new Error('user not found')
     }
-    return {Success: "Success", id: id};
-}
-
-
-const Update= async (userData, id) =>{
-
-    const newData= {...userData};
-    const updatedUser= await mongoDB.collection("users").updateOne({id: id}, {$set: newData} );
-    if (updatedUser.matchedCount === 0){
-        throw new Error("Not found");
+    const updatedUser = await this. user.updateOne(
+        {_id: new ObjectId(id)},
+        {$set: user}
+    )
+    if (updatedUser.matchedCount==0){
+        throw new Error('failed to update user')
     }
-    return await GetById(id);
+    if (updatedUser.modifiedCount==0){
+        throw new Error('no changes made to user')
+    }
+     return updatedUser
+  }
+
+  async Delete(id) {
+    const existingUser = await this.user.findOne({ _id: new ObjectId(id) });
+
+    if (!existingUser) {
+      throw new Error("user not found");
+    }
+
+    const deletedUser = await this.user.deleteOne({ _id: new ObjectId(id) });
+
+    if (deletedUser.deletedCount === 0) {
+      throw new Error("failed to delete user");
+    }
+
+    return deletedUser;
+  }
 }
 
-            
 
-
+export default new UserService()
