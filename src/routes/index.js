@@ -1,16 +1,8 @@
 import express from 'express'
-import routes from './routes.js'
+import userRouter from './apis/user.route.js'
 
-const app = express()
-app.use(express.json())
+const routes = express.Router()
 
-app.use('/api', routes)
+routes.use('/users', userRouter)
 
-app.use((err, req, res, next) => {
-    res.status(500).json({ error: err.message })
-})
-
-app.listen(3000, () => {
-    console.log('Server running at http://localhost:3000')
-})
-////
+export default routes

@@ -1,12 +1,32 @@
-import fs from 'fs/promises'
+import fs from "fs";
 
-const readDb = async () => {
-    const data = await fs.readFile('./db.json', 'utf-8');
-    return JSON.parse(data);
+const readDb = () => {
+  return new Promise((resolve, reject) => {
+    fs.readFile("./db.json", (err, data) => {
+      if (err) {
+        console.log("Error : ", err);
+        reject(err);
+      } else {
+        resolve(JSON.parse(data.toString()));
+      }
+    });
+  });
 };
 
-const writeDb = async (data) => {
-    await fs.writeFile('./db.json', JSON.stringify(data, null, 2));
+const writeDb = (data) => {
+  return new Promise((resolve, reject) => {
+    fs.writeFile("./db.json", JSON.stringify(data), (err, data) => {
+      if (err) {
+        console.log("Error : ", err);
+        reject(err);
+      } else {
+        resolve("success");
+      }
+    });
+  });
 };
 
-export default { readDb, writeDb };
+export default {
+  readDb,
+  writeDb,
+};
