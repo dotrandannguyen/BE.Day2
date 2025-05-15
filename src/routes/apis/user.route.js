@@ -1,6 +1,6 @@
 import express from 'express'
 import UserController from '../../controllers/user.controller.js'
-import {AuthenticateJWT} from '../../middlewares/user.authenticate.js'
+import AuthenticateJWT from '../../middlewares/authenticateJWT.js'
 const router = express.Router();
 
 router.route('/')
